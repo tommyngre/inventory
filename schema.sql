@@ -1,4 +1,4 @@
-delete database if exists bamazon;
+drop database if exists bamazon;
 
 create database bamazon;
 
