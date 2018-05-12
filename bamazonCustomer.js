@@ -1,6 +1,3 @@
-//// if so, update DB and show total cost
-
-//OPTIONAL/BONUSES
 //https://unc.bootcampcontent.com/UNC-Coding-Boot-Camp/UNCHILL201802FSF3-Class-Repository-FSF/blob/master/homework/12-mysql/homework_instructions.md
 
 let inquirer = require('inquirer');
@@ -27,7 +24,7 @@ let spaces = [
   10,
 ]
 
-function mkSp(element, index) {
+function makeSpaces(element, index) {
   str = ''
 
   element = String(element);
@@ -39,33 +36,59 @@ function mkSp(element, index) {
   return str;
 }
 
-///first, ask ID of product want to buy
-///second, how many units
-
 function transact(transaction) {
-  
+
   let query = "UPDATE products SET stock_quantity=? where item_id=?";
   let newQuantity = parseInt(transaction.stock_quantity) - parseInt((transaction.purchase_quantity));
   let cost = parseInt(transaction.purchase_quantity) * parseFloat(transaction.unit_cost);
 
-  connection.query(query, [newQuantity,parseInt(transaction.id)], function (err, res) {
+  connection.query(query, [newQuantity, parseInt(transaction.id)], function (err, res) {
 
-    if (err) throw err;
-
-    connection.end();
+    if (err) {
+      throw err;
+      connection.end();
+    }
 
   });
 
   console.log(`
 Transaction confirmed...
-You purchased ${transaction.purchase_quantity} ${transaction.name}(s) for ${cost}.`)
+You purchased ${transaction.purchase_quantity} ${transaction.name}(s) for ${cost}.
+  `);
 
-  //start();
+  setTimeout(function () {
+    console.log(`Recalculating inventory...
+    `)
+  }, 500)
+
+  setTimeout(function () {
+
+    inquirer.prompt([
+      {
+        name: "continue",
+        type: "list",
+        choices: ["Yes, continue.", "No, exit."],
+        message: "Make another purchase?",
+      }]).then(function (answers) {
+        if (answers.continue == "No, exit.") {
+          console.log(`
+Exiting inventory system...
+          `);
+          connection.end();
+        } else {
+          start();
+        }
+
+      })
+
+  }, 1000);
 }
 
 function query(inventory) {
 
   let index = '';
+
+  console.log('');
 
   inquirer.prompt([
     {
@@ -109,7 +132,6 @@ function query(inventory) {
       }
     }
   ]).then(answers => {
-    //console.log(` id ${answers.id}; quantity ${answers.quantity}`);
 
     let transaction = {
       id: answers.id,
@@ -131,15 +153,17 @@ function start() {
     item_id: [],
     stock_quantity: [],
     unit_cost: [],
-    name:[]
+    name: []
   }
-
-  connection.connect();
+  if (!connection._connectCalled) {
+    connection.connect();
+  }
 
   connection.query('SELECT * FROM products', function (err, res) {
     if (err) throw err;
 
-    console.log(`Inventory:`);
+    console.log(`
+ITEM_ID ${makeSpaces("item_id", 0)} PRODUCT_NAME ${makeSpaces("product_name", 1)} DEPARTMENT_NAME ${makeSpaces("department_name", 2)} PRICE ${makeSpaces("price", 3)} QUANTITY ${makeSpaces("quantity", 4)}`)
 
     res.forEach(row => {
 
@@ -148,15 +172,15 @@ function start() {
       inventory.unit_cost.push(parseFloat(row.price));
       inventory.name.push(row.product_name);
 
-      console.log(`${row.item_id} ${mkSp(row.item_id, 0)} ${row.product_name} ${mkSp(row.product_name, 1)} ${row.department_name} ${mkSp(row.department_name, 2)} ${row.price} ${mkSp(row.price, 3)} ${row.stock_quantity} ${mkSp(row.stock_quantity, 4)}`)
+      console.log(`${row.item_id} ${makeSpaces(row.item_id, 0)} ${row.product_name} ${makeSpaces(row.product_name, 1)} ${row.department_name} ${makeSpaces(row.department_name, 2)} ${row.price} ${makeSpaces(row.price, 3)} ${row.stock_quantity} ${makeSpaces(row.stock_quantity, 4)}`)
 
     });
 
   });
 
-  setTimeout(function(){
+  setTimeout(function () {
     query(inventory);
-  },500);
+  }, 500);
 
 }
 
