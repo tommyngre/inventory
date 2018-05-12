@@ -72,8 +72,7 @@ You purchased ${transaction.purchase_quantity} ${transaction.name}(s) for ${cost
       }]).then(function (answers) {
         if (answers.continue == "No, exit.") {
           console.log(`
-Exiting inventory system...
-          `);
+Exiting inventory system...`);
           connection.end();
         } else {
           start();
