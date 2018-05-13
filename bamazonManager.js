@@ -134,7 +134,7 @@ function addItem() {
         stock_quantity: answers.quantity
       };
 
-      connection.query("INSERT INTO products (product_name,department_name,price,stock_quantity) VALUES (?,?,?,?)", [add.name, answers.department, answers.price, add.quantity], function (err, res) {
+      connection.query("INSERT INTO products (product_name,department_name,price,stock_quantity) VALUES (?,?,?,?)", [add.name, answers.department, answers.price, add.stock_quantity], function (err, res) {
         if (err) {
           throw err;
           connection.end();
@@ -142,7 +142,7 @@ function addItem() {
 
       })
 
-      confirm(transaction);
+      confirm(add);
     });
 }
 
