@@ -1,5 +1,3 @@
-// If a manager selects Add New Product, it should allow the manager to add a completely new product to the store.
-
 let inquirer = require('inquirer');
 let mysql = require('mysql');
 
@@ -36,26 +34,15 @@ function makeSpaces(element, index) {
   return str;
 }
 
-function transact(transaction) {
-  let query = "UPDATE products SET stock_quantity=? where item_id=?";
-  console.log(parseInt(transaction.stock_quantity), parseInt(transaction.id))
-  connection.query(query, [parseInt(transaction.stock_quantity), parseInt(transaction.id)], function (err, res) {
-
-    if (err) {
-      throw err;
-      connection.end();
-    }
-
-  });
-
+function confirm(transaction) {
   console.log(`
-Transaction confirmed...
-You updated the stock of ${transaction.name} to ${transaction.purchase_quantity}.
-  `);
+  Transaction confirmed...
+  You updated the stock of ${transaction.name} to ${transaction.stock_quantity}.
+    `);
 
   setTimeout(function () {
     console.log(`Recalculating inventory...
-    `)
+      `)
   }, 500)
 
   setTimeout(function () {
@@ -69,24 +56,100 @@ You updated the stock of ${transaction.name} to ${transaction.purchase_quantity}
       }]).then(function (answers) {
         if (answers.continue == "No, exit.") {
           console.log(`
-Exiting inventory system...`);
+  Exiting inventory system...`);
           connection.end();
         } else {
           menu();
         }
+      })
+  }, 1000);
+
+}
+
+function transact(transaction) {
+  let query = "UPDATE products SET stock_quantity=? where item_id=?";
+  connection.query(query, [parseInt(transaction.stock_quantity), parseInt(transaction.id)], function (err, res) {
+
+    if (err) {
+      throw err;
+      connection.end();
+    }
+
+  });
+
+  confirm(transaction);
+}
+
+function addItem() {
+  console.log('');
+
+  inquirer.prompt([
+    {
+      name: "name",
+      type: "input",
+      message: "Enter the name of the new item:",
+      validate: function (entry) {
+        //if name is null or >30 chars
+        if (entry.length == 0 || entry.length > 30) {
+          return false;
+        } else { return true; }
+      }
+    },
+    {
+      name: "department",
+      type: "input",
+      message: "Enter the department of the the item:",
+      validate: function (entry) {
+        //if name is null or >30 chars
+        if (entry.length == 0 || entry.length > 30) {
+          return false;
+        } else { return true; }
+      }
+    },
+    {
+      name: "quantity",
+      type: "input",
+      message: "Enter the quantity in stock of the new item:",
+      validate: function (entry) {
+        //if name is null or >30 chars
+        if (!entry.match(/[0-9]/)) {
+          return false;
+        } else { return true; }
+      }
+    },
+    {
+      name: "price",
+      type: "input",
+      message: "Enter the retail price of the new item:",
+      validate: function (entry) {
+        //if name is null or >30 chars
+        if (!entry.match(/[0-9.0-9]/)) {
+          return false;
+        } else { return true; }
+      }
+    }]).then(function (answers) {
+
+      let add = {
+        name: answers.name,
+        stock_quantity: answers.quantity
+      };
+
+      connection.query("INSERT INTO products (product_name,department_name,price,stock_quantity) VALUES (?,?,?,?)", [add.name, answers.department, answers.price, add.quantity], function (err, res) {
+        if (err) {
+          throw err;
+          connection.end();
+        }
 
       })
 
-  }, 1000);
-}
-
-function addItem(){
-  
+      confirm(transaction);
+    });
 }
 
 function addQuantity(inventory) {
   let index = '';
 
+  console.log('');
   inquirer.prompt([
     {
       name: "id",
@@ -136,7 +199,6 @@ function addQuantity(inventory) {
     }
 
     transact(transaction);
-
   });
 
 }
@@ -150,10 +212,12 @@ function showInventory(query, option) {
     name: []
   }
 
+  //don't try to connect if already connected
   if (!connection._connectCalled) {
     connection.connect();
   }
 
+  //display inventory based on query param
   connection.query(query, function (err, res) {
     if (err) throw err;
 
@@ -173,61 +237,61 @@ ITEM_ID ${makeSpaces("item_id", 0)} PRODUCT_NAME ${makeSpaces("product_name", 1)
 
   });
 
+  //resume based on option param
   if (option === "") {
     setTimeout(function () {
       menu();
     }, 500);
   } else if (option === "add quantity") {
-    addQuantity(inventory);
+
+    setTimeout(function () {
+      addQuantity(inventory);
+    }, 500);
+
   } else if (option === "add item") {
-    addItem();
+
+    setTimeout(function () {
+      addItem();
+    }, 500);
+
   } else {
     //nuthin
   }
 
 }
 
-function exit() {
-  inquirer.prompt([
-    {
-      name: "continue",
-      type: "list",
-      choices: ["Yes, continue.", "No, exit."],
-      message: "Make another purchase?",
-    }]).then(function (answers) {
-      if (answers.continue == "No, exit.") {
-        console.log(`
-Exiting inventory system...`);
-        connection.end();
-      } else {
-        start();
-      }
-
-    })
-}
-
 function menu() {
 
   console.log('');
+
   inquirer.prompt([
     {
       name: "menu",
       type: "list",
       message: "Choose function:",
-      choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product"]
+      choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product", "Exit"]
     }
   ]).then(function (answers) {
 
+    //exit before declaring params for switch
+    if (answers.menu === "Exit") {
+      console.log(`
+Goodbye :^)`);
+      connection.end();
+      return;
+    }
+
+    //default params
     let query = "SELECT * FROM products";
     let option = '';
 
+    //set/reset params by case
     switch (answers.menu) {
       case "View Products for Sale":
         break;
 
       case "View Low Inventory":
         query = "SELECT * FROM products WHERE stock_quantity < 5";
-        showInventory(query, "");
         break;
 
       case "Add to Inventory":
@@ -242,11 +306,8 @@ function menu() {
         break;
 
     }
-
     showInventory(query, option);
-
   })
-
 }
 
 menu();
