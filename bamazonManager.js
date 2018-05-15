@@ -91,6 +91,7 @@ function addItem() {
       validate: function (entry) {
         //if name is null or >30 chars
         if (entry.length == 0 || entry.length > 30) {
+          console.log(` !!! Enter a value`);
           return false;
         } else { return true; }
       }
@@ -102,6 +103,7 @@ function addItem() {
       validate: function (entry) {
         //if name is null or >30 chars
         if (entry.length == 0 || entry.length > 30) {
+          console.log(` !!! Enter a value`);
           return false;
         } else { return true; }
       }
@@ -113,6 +115,7 @@ function addItem() {
       validate: function (entry) {
         //if name is null or >30 chars
         if (!entry.match(/[0-9]/)) {
+          console.log(` !!! Enter a numeric value`);
           return false;
         } else { return true; }
       }
@@ -124,6 +127,7 @@ function addItem() {
       validate: function (entry) {
         //if name is null or >30 chars
         if (!entry.match(/[0-9.0-9]/)) {
+          console.log(` !!! Enter a price in this format: ##.##`);
           return false;
         } else { return true; }
       }
@@ -181,7 +185,7 @@ function addQuantity(inventory) {
           return false;
         } else {
           if (entry < 0) {
-            console.log(" !!! Negative inventory?? Try again :^)");
+            console.log(" !!! Negative inventory?? Try again :)");
             return false;
           } else {
             return true;
@@ -276,7 +280,7 @@ function menu() {
     //exit before declaring params for switch
     if (answers.menu === "Exit") {
       console.log(`
-Goodbye :^)`);
+Goodbye!`);
       connection.end();
       return;
     }
