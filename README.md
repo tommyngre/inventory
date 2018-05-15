@@ -42,6 +42,10 @@ Some examples of the error handling performed
 
 ![alt text](https://github.com/tommyngre/inventory/blob/master/readme%20assets/manager-err-handling.gif "Customer purchase workflow")
 
+### planned enhancements
+* for Manager's "add item" workflow, populate discrete set of departments for selection from a list
+* better price validation
+
 ## Dependencies
 1. https://www.npmjs.com/package/inquirer
 2. https://www.npmjs.com/package/mysql
